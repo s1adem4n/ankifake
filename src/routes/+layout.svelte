@@ -31,7 +31,7 @@
 
 <svelte:head>
 	<link rel="icon" href="{base}/icon.svg" />
-	<link rel="apple-touch-icon" href="{base}/icon.svg" />
+	<link rel="apple-touch-icon" href="{base}/icons/icon-180.png" />
 </svelte:head>
 
 <div class="flex min-h-svh flex-col bg-base-200 pb-[calc(4rem+env(safe-area-inset-bottom))]">
