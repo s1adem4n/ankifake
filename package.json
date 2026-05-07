@@ -1,0 +1,62 @@
+{
+	"name": "web",
+	"type": "module",
+	"private": true,
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"format": "prettier --write ."
+	},
+	"devDependencies": {
+		"@iconify-json/lucide": "^1.2.105",
+		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/kit": "^2.59.1",
+		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"@tailwindcss/vite": "^4.2.4",
+		"@types/dompurify": "^3.2.0",
+		"@types/file-saver": "^2.0.7",
+		"@types/node": "^25.6.1",
+		"@types/papaparse": "^5.5.2",
+		"daisyui": "^5.5.19",
+		"prettier": "^3.8.3",
+		"prettier-plugin-svelte": "^3.5.1",
+		"prettier-plugin-tailwindcss": "^0.8.0",
+		"svelte": "^5.55.5",
+		"svelte-check": "^4.4.8",
+		"tailwindcss": "^4.2.4",
+		"typescript": "^6.0.3",
+		"unplugin-icons": "^23.0.1",
+		"vite": "^8.0.11"
+	},
+	"prettier": {
+		"useTabs": true,
+		"singleQuote": true,
+		"trailingComma": "none",
+		"printWidth": 100,
+		"plugins": [
+			"prettier-plugin-svelte",
+			"prettier-plugin-tailwindcss"
+		],
+		"overrides": [
+			{
+				"files": "*.svelte",
+				"options": {
+					"parser": "svelte"
+				}
+			}
+		],
+		"tailwindStylesheet": "./src/routes/layout.css"
+	},
+	"dependencies": {
+		"dexie": "^4.4.2",
+		"dompurify": "^3.4.2",
+		"file-saver": "^2.0.5",
+		"jszip": "^3.10.1",
+		"marked": "^18.0.3",
+		"papaparse": "^5.5.3"
+	}
+}
