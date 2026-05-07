@@ -66,7 +66,7 @@
 		<input
 			type="file"
 			accept=".csv,text/csv,text/plain"
-			class="file-input-bordered file-input w-full"
+			class="file-input w-full"
 			onchange={pickFile}
 		/>
 	</label>
