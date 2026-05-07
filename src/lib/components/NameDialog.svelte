@@ -21,14 +21,12 @@
 
 	let dialog: HTMLDialogElement | undefined = $state();
 	let value = $state('');
-	let input: HTMLInputElement | undefined = $state();
 
 	$effect(() => {
 		if (!dialog) return;
 		if (open && !dialog.open) {
 			value = initial;
 			dialog.showModal();
-			queueMicrotask(() => input?.focus());
 		} else if (!open && dialog.open) {
 			dialog.close();
 		}
@@ -47,13 +45,7 @@
 		<h3 class="text-lg font-semibold">{title}</h3>
 		<label class="form-control mt-3 w-full">
 			<span class="label-text mb-1 text-sm">{label}</span>
-			<input
-				bind:this={input}
-				bind:value
-				type="text"
-				class="input-bordered input w-full"
-				autocomplete="off"
-			/>
+			<input bind:value type="text" class="input-bordered input w-full" autocomplete="off" />
 		</label>
 		<div class="modal-action">
 			<button type="button" class="btn btn-ghost" onclick={onClose}>Abbrechen</button>
