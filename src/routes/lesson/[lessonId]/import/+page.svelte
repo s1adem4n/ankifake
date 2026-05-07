@@ -11,12 +11,16 @@
 	const back = $derived(resolve('/lesson/[lessonId]', { lessonId }));
 
 	let text = $state('');
+	let separator = $state(';');
 	let importing = $state(false);
 
-	function parseCsv(input: string) {
+	function parseCsv(input: string, delimiter: string) {
 		const trimmed = input.trim();
 		if (!trimmed) return { rows: [] as { front: string; back: string }[], skipped: 0 };
-		const result = Papa.parse<string[]>(trimmed, { skipEmptyLines: true });
+		const result = Papa.parse<string[]>(trimmed, {
+			delimiter: delimiter || ';',
+			skipEmptyLines: true
+		});
 		const data = result.data ?? [];
 		let startIdx = 0;
 		const firstCell = (data[0]?.[0] ?? '').toLowerCase().trim();
@@ -36,7 +40,7 @@
 		return { rows, skipped };
 	}
 
-	const parsed = $derived(parseCsv(text));
+	const parsed = $derived(parseCsv(text, separator));
 
 	async function pickFile(e: Event) {
 		const input = e.target as HTMLInputElement;
@@ -78,8 +82,19 @@
 		<textarea
 			bind:value={text}
 			class="textarea-bordered textarea min-h-[24vh] w-full font-mono text-xs leading-relaxed"
-			placeholder={'front,back\nHund,dog\nKatze,cat'}
+			placeholder={'front;back\nHund;dog\nKatze;cat'}
 		></textarea>
+	</label>
+
+	<label class="form-control w-full sm:max-w-48">
+		<span class="label-text mb-1 text-sm">Separator</span>
+		<input
+			bind:value={separator}
+			type="text"
+			class="input w-full font-mono"
+			placeholder=";"
+			aria-label="CSV-Separator"
+		/>
 	</label>
 
 	{#if text.trim()}
