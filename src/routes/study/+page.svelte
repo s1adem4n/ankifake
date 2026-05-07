@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { countCardsInLesson, listGrades, listLessons, listSubjects } from '$lib/db/queries';
 	import type { Grade, Lesson, Subject } from '$lib/db/types';
 	import { setPendingSession, type StudyMode } from '$lib/study/session';
@@ -114,7 +114,7 @@
 			shuffle: true,
 			typeTolerant
 		});
-		goto(`${base}/study/run`);
+		goto(resolve('/study/run'));
 	}
 
 	const modes: { id: StudyMode; label: string; desc: string; icon: typeof PlayIcon }[] = [
@@ -145,11 +145,11 @@
 			>
 				Noch keine Lektion mit Karten vorhanden.
 				<br />
-				<a class="link" href="{base}/library">Zur Bibliothek</a>
+				<a class="link" href={resolve('/library')}>Zur Bibliothek</a>
 			</div>
 		{:else}
 			<ul
-				class="rounded-box divide-y divide-base-300 overflow-hidden border border-base-300 bg-base-100"
+				class="divide-y divide-base-300 overflow-hidden rounded-box border border-base-300 bg-base-100"
 			>
 				{#each tree as g (g.grade.id)}
 					{@const gStats = gradeStats(g)}
@@ -171,7 +171,7 @@
 									{gStats.lessonsSelected}
 								</span>
 							{/if}
-							<span class="badge badge-sm badge-ghost shrink-0">
+							<span class="badge shrink-0 badge-ghost badge-sm">
 								{gStats.lessonsTotal}
 							</span>
 						</button>
@@ -198,7 +198,7 @@
 													{sStats.lessonsSelected}
 												</span>
 											{/if}
-											<span class="badge badge-xs badge-ghost shrink-0">
+											<span class="badge shrink-0 badge-ghost badge-xs">
 												{sStats.lessonsTotal}
 											</span>
 										</button>
@@ -268,7 +268,7 @@
 		{/if}
 	</section>
 
-	<button class="btn btn-primary btn-lg w-full" disabled={!selected.size} onclick={start}>
+	<button class="btn w-full btn-lg btn-primary" disabled={!selected.size} onclick={start}>
 		<PlayIcon class="size-5" />
 		Test starten
 		{#if totalSelectedCards}

@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import Papa from 'papaparse';
 	import { bulkCreateCards } from '$lib/db/queries';
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import UploadIcon from '~icons/lucide/upload';
 
 	const lessonId = $derived(page.params.lessonId!);
-	const back = $derived(`${base}/lesson/${lessonId}`);
+	const back = $derived(resolve('/lesson/[lessonId]', { lessonId }));
 
 	let text = $state('');
 	let importing = $state(false);

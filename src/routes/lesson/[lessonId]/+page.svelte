@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { db } from '$lib/db/db';
 	import { deleteCard, listCards } from '$lib/db/queries';
 	import type { Card, Lesson, Subject } from '$lib/db/types';
@@ -20,7 +20,12 @@
 	let toDelete = $state<Card | null>(null);
 
 	const backHref = $derived(
-		subject ? `${base}/library/${subject.gradeId}/${subject.id}` : `${base}/library`
+		subject
+			? resolve('/library/[gradeId]/[subjectId]', {
+					gradeId: subject.gradeId,
+					subjectId: subject.id
+				})
+			: resolve('/library')
 	);
 
 	async function refresh() {
@@ -55,7 +60,7 @@
 <AppHeader title={lesson?.name ?? 'Lektion'} back={backHref}>
 	{#snippet actions()}
 		<a
-			href={`${base}/lesson/${lessonId}/new`}
+			href={resolve('/lesson/[lessonId]/new', { lessonId })}
 			class="btn btn-square btn-sm btn-primary"
 			aria-label="Neue Karte"
 		>
@@ -72,7 +77,7 @@
 				class="dropdown-content menu z-20 w-52 rounded-box bg-base-100 p-1 shadow-lg"
 			>
 				<li>
-					<a href={`${base}/lesson/${lessonId}/import`} onclick={blurActive}>
+					<a href={resolve('/lesson/[lessonId]/import', { lessonId })} onclick={blurActive}>
 						<UploadIcon class="size-4" />CSV importieren
 					</a>
 				</li>
@@ -84,7 +89,10 @@
 <ul class="list">
 	{#each cards as c (c.id)}
 		<li class="flex items-center border-b border-base-300 bg-base-100 last:border-b-0">
-			<a href={`${base}/lesson/${lessonId}/${c.id}`} class="flex min-w-0 flex-1 flex-col gap-1 px-4 py-3">
+			<a
+				href={resolve('/lesson/[lessonId]/[cardId]', { lessonId, cardId: c.id })}
+				class="flex min-w-0 flex-1 flex-col gap-1 px-4 py-3"
+			>
 				<div class="truncate text-sm font-medium">{preview(c.front) || '(leer)'}</div>
 				<div class="truncate text-xs opacity-60">{preview(c.back) || '(leer)'}</div>
 			</a>
@@ -104,7 +112,10 @@
 					class="dropdown-content menu z-20 w-44 rounded-box bg-base-100 p-1 shadow-lg"
 				>
 					<li>
-						<a href={`${base}/lesson/${lessonId}/${c.id}`} onclick={blurActive}>
+						<a
+							href={resolve('/lesson/[lessonId]/[cardId]', { lessonId, cardId: c.id })}
+							onclick={blurActive}
+						>
 							<PencilIcon class="size-4" />Bearbeiten
 						</a>
 					</li>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import './layout.css';
 	import { page } from '$app/state';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import LibraryIcon from '~icons/lucide/library-big';
 	import BrainIcon from '~icons/lucide/brain';
 	import SettingsIcon from '~icons/lucide/settings';
@@ -9,29 +9,31 @@
 	let { children } = $props();
 
 	const navItems = [
-		{ href: `${base}/study`, label: 'Lernen', icon: BrainIcon, match: /^\/study/ },
+		{ href: resolve('/study'), label: 'Lernen', icon: BrainIcon, match: /^\/study/ },
 		{
-			href: `${base}/library`,
+			href: resolve('/library'),
 			label: 'Bibliothek',
 			icon: LibraryIcon,
 			match: /^\/(library|lesson|$)/
 		},
-		{ href: `${base}/settings`, label: 'Mehr', icon: SettingsIcon, match: /^\/settings/ }
+		{ href: resolve('/settings'), label: 'Mehr', icon: SettingsIcon, match: /^\/settings/ }
 	];
 
-	const currentPath = $derived(
-		page.url.pathname.startsWith(base) ? page.url.pathname.slice(base.length) || '/' : page.url.pathname
-	);
+	const currentPath = $derived(page.route.id ?? page.url.pathname);
 
 	function isActive(re: RegExp) {
 		if (currentPath === '/' && re.source.includes('library')) return true;
 		return re.test(currentPath);
 	}
+
+	function resolvePath(path: `/${string}`) {
+		return (resolve as (path: `/${string}`) => string)(path);
+	}
 </script>
 
 <svelte:head>
-	<link rel="icon" href="{base}/icon.svg" />
-	<link rel="apple-touch-icon" href="{base}/icons/icon-180.png" />
+	<link rel="icon" href={resolvePath('/icon.svg')} />
+	<link rel="apple-touch-icon" href={resolvePath('/icons/icon-180.png')} />
 </svelte:head>
 
 <div class="flex min-h-svh flex-col bg-base-200 pb-[calc(4rem+env(safe-area-inset-bottom))]">

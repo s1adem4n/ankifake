@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { listCards } from '$lib/db/queries';
 	import type { Card } from '$lib/db/types';
 	import { takePendingSession, setPendingSession, type StudyConfig } from '$lib/study/session';
@@ -52,7 +52,7 @@
 	onMount(() => {
 		const cfg = takePendingSession();
 		if (!cfg) {
-			goto(`${base}/study`);
+			goto(resolve('/study'));
 			return;
 		}
 		config = cfg;
@@ -127,7 +127,7 @@
 	const progress = $derived(stats.total ? Math.round((completed / stats.total) * 100) : 0);
 </script>
 
-<AppHeader title={done ? 'Fertig!' : 'Test läuft'} back="{base}/study" />
+<AppHeader title={done ? 'Fertig!' : 'Test läuft'} back={resolve('/study')} />
 
 {#if !ready}
 	<div class="flex min-h-[40vh] items-center justify-center">
@@ -146,7 +146,7 @@
 			<button class="btn btn-primary" onclick={restart}>
 				<RotateCwIcon class="size-4" />Nochmal
 			</button>
-			<a class="btn btn-ghost" href="{base}/study">Zur Auswahl</a>
+			<a class="btn btn-ghost" href={resolve('/study')}>Zur Auswahl</a>
 		</div>
 	</div>
 {:else if current}

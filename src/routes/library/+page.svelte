@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { createGrade, deleteGrade, listGrades, renameGrade } from '$lib/db/queries';
 	import type { Grade } from '$lib/db/types';
 	import AppHeader from '$lib/components/AppHeader.svelte';
@@ -61,7 +61,7 @@
 	{#each grades as g (g.id)}
 		<LibraryRow
 			name={g.name}
-			href={`${base}/library/${g.id}`}
+			href={resolve('/library/[gradeId]', { gradeId: g.id })}
 			onRename={() => (dlg = { kind: 'rename', target: g })}
 			onDelete={() => (dlg = { kind: 'delete', target: g })}
 		/>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { db } from '$lib/db/db';
 	import {
 		countCardsInLesson,
@@ -62,7 +62,7 @@
 	}
 </script>
 
-<AppHeader title={subject?.name ?? 'Fach'} back={`${base}/library/${gradeId}`}>
+<AppHeader title={subject?.name ?? 'Fach'} back={resolve('/library/[gradeId]', { gradeId })}>
 	{#snippet actions()}
 		<button
 			class="btn btn-square btn-sm btn-primary"
@@ -79,7 +79,7 @@
 		{@const n = counts[l.id] ?? 0}
 		<LibraryRow
 			name={l.name}
-			href={`${base}/lesson/${l.id}`}
+			href={resolve('/lesson/[lessonId]', { lessonId: l.id })}
 			meta={`${n} ${n === 1 ? 'Karte' : 'Karten'}`}
 			onRename={() => (dlg = { kind: 'rename', target: l })}
 			onDelete={() => (dlg = { kind: 'delete', target: l })}

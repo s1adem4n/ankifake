@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { db } from '$lib/db/db';
 	import { createSubject, deleteSubject, listSubjects, renameSubject } from '$lib/db/queries';
 	import type { Grade, Subject } from '$lib/db/types';
@@ -50,7 +50,7 @@
 	}
 </script>
 
-<AppHeader title={grade?.name ?? 'Klassenstufe'} back="{base}/library">
+<AppHeader title={grade?.name ?? 'Klassenstufe'} back={resolve('/library')}>
 	{#snippet actions()}
 		<button
 			class="btn btn-square btn-sm btn-primary"
@@ -66,7 +66,7 @@
 	{#each subjects as s (s.id)}
 		<LibraryRow
 			name={s.name}
-			href={`/library/${gradeId}/${s.id}`}
+			href={resolve('/library/[gradeId]/[subjectId]', { gradeId, subjectId: s.id })}
 			onRename={() => (dlg = { kind: 'rename', target: s })}
 			onDelete={() => (dlg = { kind: 'delete', target: s })}
 		/>
