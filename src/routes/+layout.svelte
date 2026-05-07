@@ -5,6 +5,7 @@
 	import LibraryIcon from '~icons/lucide/library-big';
 	import BrainIcon from '~icons/lucide/brain';
 	import SettingsIcon from '~icons/lucide/settings';
+	import { MediaQuery } from 'svelte/reactivity';
 
 	let { children } = $props();
 
@@ -29,6 +30,8 @@
 	function resolvePath(path: `/${string}`) {
 		return (resolve as (path: `/${string}`) => string)(path);
 	}
+
+	const isStandalone = new MediaQuery('(display-mode: standalone)');
 </script>
 
 <svelte:head>
@@ -36,7 +39,7 @@
 	<link rel="apple-touch-icon" href={resolvePath('/icons/icon-180.png')} />
 </svelte:head>
 
-<div class="flex min-h-svh flex-col bg-base-200 pb-[calc(4rem+env(safe-area-inset-bottom))]">
+<div class={['flex flex-col bg-base-200', isStandalone ? 'h-screen' : 'h-full']}>
 	<main class="flex-1">
 		{@render children()}
 	</main>
