@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { db } from '$lib/db/db';
 	import { deleteCard, listCards } from '$lib/db/queries';
@@ -13,10 +11,33 @@
 	import PencilIcon from '~icons/lucide/pencil';
 	import TrashIcon from '~icons/lucide/trash-2';
 
-	const lessonId = $derived(page.params.lessonId!);
-	let lesson = $state<Lesson | undefined>();
-	let subject = $state<Subject | undefined>();
-	let cards = $state<Card[]>([]);
+	let {
+		data
+	}: {
+		data: {
+			lessonId: string;
+			lesson: Lesson | undefined;
+			subject: Subject | undefined;
+			cards: Card[];
+		};
+	} = $props();
+	const lessonId = $derived(data.lessonId);
+
+	function initialLesson() {
+		return data.lesson;
+	}
+
+	function initialSubject() {
+		return data.subject;
+	}
+
+	function initialCards() {
+		return data.cards;
+	}
+
+	let lesson = $state(initialLesson());
+	let subject = $state(initialSubject());
+	let cards = $state(initialCards());
 	let toDelete = $state<Card | null>(null);
 
 	const backHref = $derived(
@@ -33,8 +54,6 @@
 		subject = lesson ? await db.subjects.get(lesson.subjectId) : undefined;
 		cards = await listCards(lessonId);
 	}
-
-	onMount(refresh);
 
 	function preview(text: string): string {
 		const stripped = text

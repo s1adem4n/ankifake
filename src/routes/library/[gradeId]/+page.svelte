@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { db } from '$lib/db/db';
 	import { createSubject, deleteSubject, listSubjects, renameSubject } from '$lib/db/queries';
@@ -11,9 +9,23 @@
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import PlusIcon from '~icons/lucide/plus';
 
-	const gradeId = $derived(page.params.gradeId!);
-	let grade = $state<Grade | undefined>();
-	let subjects = $state<Subject[]>([]);
+	let {
+		data
+	}: {
+		data: { gradeId: string; grade: Grade | undefined; subjects: Subject[] };
+	} = $props();
+	const gradeId = $derived(data.gradeId);
+
+	function initialGrade() {
+		return data.grade;
+	}
+
+	function initialSubjects() {
+		return data.subjects;
+	}
+
+	let grade = $state(initialGrade());
+	let subjects = $state(initialSubjects());
 
 	type Dialog =
 		| { kind: 'create' }
@@ -26,8 +38,6 @@
 		grade = await db.grades.get(gradeId);
 		subjects = await listSubjects(gradeId);
 	}
-
-	onMount(refresh);
 
 	async function onCreate(name: string) {
 		await createSubject(gradeId, name);

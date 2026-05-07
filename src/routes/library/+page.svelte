@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { createGrade, deleteGrade, listGrades, renameGrade } from '$lib/db/queries';
 	import type { Grade } from '$lib/db/types';
@@ -9,7 +8,13 @@
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import PlusIcon from '~icons/lucide/plus';
 
-	let grades = $state<Grade[]>([]);
+	let { data }: { data: { grades: Grade[] } } = $props();
+
+	function initialGrades() {
+		return data.grades;
+	}
+
+	let grades = $state(initialGrades());
 
 	type Dialog =
 		| { kind: 'create' }
@@ -21,8 +26,6 @@
 	async function refresh() {
 		grades = await listGrades();
 	}
-
-	onMount(refresh);
 
 	async function onCreate(name: string) {
 		await createGrade(name);

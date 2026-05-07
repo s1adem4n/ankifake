@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { listCards } from '$lib/db/queries';
 	import type { Card } from '$lib/db/types';
-	import { takePendingSession, setPendingSession, type StudyConfig } from '$lib/study/session';
+	import { setPendingSession, type StudyConfig } from '$lib/study/session';
 	import { isCorrectAnswer } from '$lib/study/check';
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import Markdown from '$lib/components/Markdown.svelte';
@@ -14,12 +11,22 @@
 	import ArrowRightIcon from '~icons/lucide/arrow-right';
 	import RotateCwIcon from '~icons/lucide/rotate-cw';
 
-	let config = $state<StudyConfig | null>(null);
+	let { data }: { data: { config: StudyConfig; cards: Card[] } } = $props();
+
+	function initialConfig() {
+		return data.config;
+	}
+
+	function initialCards() {
+		return data.cards;
+	}
+
+	let config = $state<StudyConfig>(initialConfig());
 	let allCards = $state<Card[]>([]);
 	let stack = $state<string[]>([]);
 	let stats = $state({ firstTryCorrect: 0, attempts: 0, total: 0 });
 	let seenIds = new Set<string>();
-	let ready = $state(false);
+	let ready = $state(true);
 
 	// per-card state
 	let revealed = $state(false);
@@ -39,25 +46,15 @@
 		return a;
 	}
 
-	async function bootstrap(cfg: StudyConfig) {
-		const lists = await Promise.all(cfg.lessonIds.map((id) => listCards(id)));
-		const flat = lists.flat();
-		allCards = cfg.shuffle ? shuffle(flat) : flat;
+	function bootstrap(cfg: StudyConfig, cards: Card[]) {
+		allCards = cfg.shuffle ? shuffle(cards) : cards;
 		stack = allCards.map((c) => c.id);
 		stats = { firstTryCorrect: 0, attempts: 0, total: allCards.length };
 		seenIds = new Set();
 		ready = true;
 	}
 
-	onMount(() => {
-		const cfg = takePendingSession();
-		if (!cfg) {
-			goto(resolve('/study'));
-			return;
-		}
-		config = cfg;
-		void bootstrap(cfg);
-	});
+	bootstrap(config, initialCards());
 
 	// reset per-card state when card changes; rebuild MC options
 	$effect(() => {
@@ -118,8 +115,7 @@
 		setPendingSession(config);
 		ready = false;
 		stack = [];
-		// re-trigger
-		void bootstrap(config);
+		bootstrap(config, initialCards());
 	}
 
 	const done = $derived(ready && stack.length === 0);

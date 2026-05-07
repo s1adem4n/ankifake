@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { countCardsInLesson, listGrades, listLessons, listSubjects } from '$lib/db/queries';
 	import type { Grade, Lesson, Subject } from '$lib/db/types';
 	import { setPendingSession, type StudyMode } from '$lib/study/session';
 	import AppHeader from '$lib/components/AppHeader.svelte';
@@ -17,36 +15,17 @@
 	type SubjectNode = { subject: Subject; lessons: LeafEntry[] };
 	type GradeNode = { grade: Grade; subjects: SubjectNode[] };
 
-	let tree = $state<GradeNode[]>([]);
+	let { data }: { data: { tree: GradeNode[] } } = $props();
+
+	function initialTree() {
+		return data.tree;
+	}
+
+	let tree = $state(initialTree());
 	let selected = $state<Set<string>>(new Set());
 	let expanded = $state<Set<string>>(new Set());
 	let mode = $state<StudyMode>('flip');
 	let typeTolerant = $state(true);
-	let loaded = $state(false);
-
-	async function load() {
-		const grades = await listGrades();
-		const result: GradeNode[] = [];
-		for (const g of grades) {
-			const subjects = await listSubjects(g.id);
-			const subjEntries: SubjectNode[] = [];
-			for (const s of subjects) {
-				const lessons = await listLessons(s.id);
-				const lEntries: LeafEntry[] = [];
-				for (const l of lessons) {
-					const count = await countCardsInLesson(l.id);
-					if (count === 0) continue;
-					lEntries.push({ lesson: l, count });
-				}
-				if (lEntries.length) subjEntries.push({ subject: s, lessons: lEntries });
-			}
-			if (subjEntries.length) result.push({ grade: g, subjects: subjEntries });
-		}
-		tree = result;
-		loaded = true;
-	}
-
-	onMount(load);
 
 	function isExpanded(id: string) {
 		return expanded.has(id);
@@ -137,9 +116,7 @@
 			{/if}
 		</div>
 
-		{#if !loaded}
-			<div class="flex justify-center p-6"><span class="loading loading-spinner"></span></div>
-		{:else if tree.length === 0}
+		{#if tree.length === 0}
 			<div
 				class="rounded-box border border-base-300 bg-base-100 p-6 text-center text-sm opacity-70"
 			>

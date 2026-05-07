@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { db } from '$lib/db/db';
 	import {
@@ -17,11 +15,35 @@
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import PlusIcon from '~icons/lucide/plus';
 
-	const gradeId = $derived(page.params.gradeId!);
-	const subjectId = $derived(page.params.subjectId!);
-	let subject = $state<Subject | undefined>();
-	let lessons = $state<Lesson[]>([]);
-	let counts = $state<Record<string, number>>({});
+	let {
+		data
+	}: {
+		data: {
+			gradeId: string;
+			subjectId: string;
+			subject: Subject | undefined;
+			lessons: Lesson[];
+			counts: Record<string, number>;
+		};
+	} = $props();
+	const gradeId = $derived(data.gradeId);
+	const subjectId = $derived(data.subjectId);
+
+	function initialSubject() {
+		return data.subject;
+	}
+
+	function initialLessons() {
+		return data.lessons;
+	}
+
+	function initialCounts() {
+		return data.counts;
+	}
+
+	let subject = $state(initialSubject());
+	let lessons = $state(initialLessons());
+	let counts = $state(initialCounts());
 
 	type Dialog =
 		| { kind: 'create' }
@@ -38,8 +60,6 @@
 		);
 		counts = Object.fromEntries(entries);
 	}
-
-	onMount(refresh);
 
 	async function onCreate(name: string) {
 		await createLesson(subjectId, name);
