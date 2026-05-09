@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import type { Grade, Lesson, Subject } from '$lib/db/types';
+	import { listStudyTree, type StudyGradeNode } from '$lib/db/queries';
+	import { Subscription } from '$lib/db/subscription.svelte';
 	import { setPendingSession, type StudyMode } from '$lib/study/session';
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import PlayIcon from '~icons/lucide/play';
@@ -11,17 +12,12 @@
 	import ChevronRightIcon from '~icons/lucide/chevron-right';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
 
-	type LeafEntry = { lesson: Lesson; count: number };
-	type SubjectNode = { subject: Subject; lessons: LeafEntry[] };
-	type GradeNode = { grade: Grade; subjects: SubjectNode[] };
+	let { data }: { data: { tree: StudyGradeNode[] } } = $props();
 
-	let { data }: { data: { tree: GradeNode[] } } = $props();
-
-	function initialTree() {
-		return data.tree;
-	}
-
-	let tree = $state(initialTree());
+	const tree = new Subscription(
+		() => () => listStudyTree(),
+		() => data.tree
+	);
 	let selected = $state<Set<string>>(new Set());
 	let expanded = $state<Set<string>>(new Set());
 	let mode = $state<StudyMode>('flip');
@@ -45,7 +41,7 @@
 		selected = next;
 	}
 
-	function gradeStats(g: GradeNode) {
+	function gradeStats(g: StudyGradeNode) {
 		let total = 0;
 		let lessonsTotal = 0;
 		let lessonsSelected = 0;
@@ -59,7 +55,7 @@
 		return { cards: total, lessonsTotal, lessonsSelected };
 	}
 
-	function subjectStats(s: SubjectNode) {
+	function subjectStats(s: StudyGradeNode['subjects'][number]) {
 		let total = 0;
 		let lessonsSelected = 0;
 		for (const l of s.lessons) {
@@ -71,7 +67,7 @@
 
 	const totalSelectedCards = $derived.by(() => {
 		let sum = 0;
-		for (const g of tree) {
+		for (const g of tree.value) {
 			for (const s of g.subjects) {
 				for (const l of s.lessons) {
 					if (selected.has(l.lesson.id)) sum += l.count;
@@ -109,14 +105,18 @@
 	<section>
 		<div class="mb-2 flex items-center justify-between">
 			<h2 class="text-sm font-semibold tracking-wide uppercase opacity-70">Lektionen</h2>
-			{#if selected.size > 0}
-				<button class="btn btn-ghost btn-xs" onclick={clearSelection}>
-					Auswahl löschen ({selected.size})
-				</button>
-			{/if}
+			<button
+				class="btn btn-ghost btn-xs"
+				class:invisible={selected.size === 0}
+				disabled={selected.size === 0}
+				aria-hidden={selected.size === 0}
+				onclick={clearSelection}
+			>
+				Auswahl löschen ({selected.size})
+			</button>
 		</div>
 
-		{#if tree.length === 0}
+		{#if tree.value.length === 0}
 			<div
 				class="rounded-box border border-base-300 bg-base-100 p-6 text-center text-sm opacity-70"
 			>
@@ -128,7 +128,7 @@
 			<ul
 				class="divide-y divide-base-300 overflow-hidden rounded-box border border-base-300 bg-base-100"
 			>
-				{#each tree as g (g.grade.id)}
+				{#each tree.value as g (g.grade.id)}
 					{@const gStats = gradeStats(g)}
 					{@const gOpen = isExpanded(g.grade.id)}
 					<li>

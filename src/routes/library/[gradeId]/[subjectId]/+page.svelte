@@ -8,6 +8,7 @@
 		listLessons,
 		renameLesson
 	} from '$lib/db/queries';
+	import { Subscription } from '$lib/db/subscription.svelte';
 	import type { Lesson, Subject } from '$lib/db/types';
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import LibraryRow from '$lib/components/LibraryRow.svelte';
@@ -28,22 +29,27 @@
 	} = $props();
 	const gradeId = $derived(data.gradeId);
 	const subjectId = $derived(data.subjectId);
+	const model = new Subscription(
+		() => {
+			const id = subjectId;
+			return async () => {
+				const lessons = await listLessons(id);
+				const entries = await Promise.all(
+					lessons.map(async (lesson) => [lesson.id, await countCardsInLesson(lesson.id)] as const)
+				);
 
-	function initialSubject() {
-		return data.subject;
-	}
-
-	function initialLessons() {
-		return data.lessons;
-	}
-
-	function initialCounts() {
-		return data.counts;
-	}
-
-	let subject = $state(initialSubject());
-	let lessons = $state(initialLessons());
-	let counts = $state(initialCounts());
+				return {
+					subject: await db.subjects.get(id),
+					lessons,
+					counts: Object.fromEntries(entries)
+				};
+			};
+		},
+		() => ({ subject: data.subject, lessons: data.lessons, counts: data.counts })
+	);
+	const subject = $derived(model.value.subject);
+	const lessons = $derived(model.value.lessons);
+	const counts = $derived(model.value.counts);
 
 	type Dialog =
 		| { kind: 'create' }
@@ -52,33 +58,21 @@
 		| null;
 	let dlg = $state<Dialog>(null);
 
-	async function refresh() {
-		subject = await db.subjects.get(subjectId);
-		lessons = await listLessons(subjectId);
-		const entries = await Promise.all(
-			lessons.map(async (l) => [l.id, await countCardsInLesson(l.id)] as const)
-		);
-		counts = Object.fromEntries(entries);
-	}
-
 	async function onCreate(name: string) {
 		await createLesson(subjectId, name);
 		dlg = null;
-		await refresh();
 	}
 
 	async function onRename(name: string) {
 		if (dlg?.kind !== 'rename') return;
 		await renameLesson(dlg.target.id, name);
 		dlg = null;
-		await refresh();
 	}
 
 	async function onDelete() {
 		if (dlg?.kind !== 'delete') return;
 		await deleteLesson(dlg.target.id);
 		dlg = null;
-		await refresh();
 	}
 </script>
 

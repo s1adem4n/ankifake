@@ -20,7 +20,7 @@
 
 <header
 	class="sticky top-0 z-10 flex items-center gap-2 border-b border-base-300 bg-base-100 px-2 py-2"
-	style="padding-top: calc(0.5rem + env(safe-area-inset-top));"
+	style="min-height: calc(3rem + env(safe-area-inset-top)); padding-top: calc(0.5rem + env(safe-area-inset-top));"
 >
 	{#if back !== undefined}
 		<button class="btn btn-square btn-ghost btn-sm" onclick={handleBack} aria-label="Zurück">

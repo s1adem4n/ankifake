@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { db } from '$lib/db/db';
 	import { createSubject, deleteSubject, listSubjects, renameSubject } from '$lib/db/queries';
+	import { Subscription } from '$lib/db/subscription.svelte';
 	import type { Grade, Subject } from '$lib/db/types';
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import LibraryRow from '$lib/components/LibraryRow.svelte';
@@ -15,17 +16,18 @@
 		data: { gradeId: string; grade: Grade | undefined; subjects: Subject[] };
 	} = $props();
 	const gradeId = $derived(data.gradeId);
-
-	function initialGrade() {
-		return data.grade;
-	}
-
-	function initialSubjects() {
-		return data.subjects;
-	}
-
-	let grade = $state(initialGrade());
-	let subjects = $state(initialSubjects());
+	const model = new Subscription(
+		() => {
+			const id = gradeId;
+			return async () => ({
+				grade: await db.grades.get(id),
+				subjects: await listSubjects(id)
+			});
+		},
+		() => ({ grade: data.grade, subjects: data.subjects })
+	);
+	const grade = $derived(model.value.grade);
+	const subjects = $derived(model.value.subjects);
 
 	type Dialog =
 		| { kind: 'create' }
@@ -34,29 +36,21 @@
 		| null;
 	let dlg = $state<Dialog>(null);
 
-	async function refresh() {
-		grade = await db.grades.get(gradeId);
-		subjects = await listSubjects(gradeId);
-	}
-
 	async function onCreate(name: string) {
 		await createSubject(gradeId, name);
 		dlg = null;
-		await refresh();
 	}
 
 	async function onRename(name: string) {
 		if (dlg?.kind !== 'rename') return;
 		await renameSubject(dlg.target.id, name);
 		dlg = null;
-		await refresh();
 	}
 
 	async function onDelete() {
 		if (dlg?.kind !== 'delete') return;
 		await deleteSubject(dlg.target.id);
 		dlg = null;
-		await refresh();
 	}
 </script>
 

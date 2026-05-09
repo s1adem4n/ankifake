@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { db } from '$lib/db/db';
 	import { deleteCard, listCards } from '$lib/db/queries';
+	import { Subscription } from '$lib/db/subscription.svelte';
 	import type { Card, Lesson, Subject } from '$lib/db/types';
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
@@ -22,22 +23,24 @@
 		};
 	} = $props();
 	const lessonId = $derived(data.lessonId);
+	const model = new Subscription(
+		() => {
+			const id = lessonId;
+			return async () => {
+				const lesson = await db.lessons.get(id);
 
-	function initialLesson() {
-		return data.lesson;
-	}
-
-	function initialSubject() {
-		return data.subject;
-	}
-
-	function initialCards() {
-		return data.cards;
-	}
-
-	let lesson = $state(initialLesson());
-	let subject = $state(initialSubject());
-	let cards = $state(initialCards());
+				return {
+					lesson,
+					subject: lesson ? await db.subjects.get(lesson.subjectId) : undefined,
+					cards: await listCards(id)
+				};
+			};
+		},
+		() => ({ lesson: data.lesson, subject: data.subject, cards: data.cards })
+	);
+	const lesson = $derived(model.value.lesson);
+	const subject = $derived(model.value.subject);
+	const cards = $derived(model.value.cards);
 	let toDelete = $state<Card | null>(null);
 
 	const backHref = $derived(
@@ -48,12 +51,6 @@
 				})
 			: resolve('/library')
 	);
-
-	async function refresh() {
-		lesson = await db.lessons.get(lessonId);
-		subject = lesson ? await db.subjects.get(lesson.subjectId) : undefined;
-		cards = await listCards(lessonId);
-	}
 
 	function preview(text: string): string {
 		const stripped = text
@@ -72,7 +69,6 @@
 		if (!toDelete) return;
 		await deleteCard(toDelete.id);
 		toDelete = null;
-		await refresh();
 	}
 </script>
 

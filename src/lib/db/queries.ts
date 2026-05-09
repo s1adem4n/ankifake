@@ -189,3 +189,33 @@ export async function attachPending(
 export async function countCardsInLesson(lessonId: string): Promise<number> {
 	return db.cards.where('lessonId').equals(lessonId).count();
 }
+
+export type StudyLessonEntry = { lesson: Lesson; count: number };
+export type StudySubjectNode = { subject: Subject; lessons: StudyLessonEntry[] };
+export type StudyGradeNode = { grade: Grade; subjects: StudySubjectNode[] };
+
+export async function listStudyTree(): Promise<StudyGradeNode[]> {
+	const grades = await listGrades();
+	const tree: StudyGradeNode[] = [];
+
+	for (const grade of grades) {
+		const subjects = await listSubjects(grade.id);
+		const subjectEntries: StudySubjectNode[] = [];
+
+		for (const subject of subjects) {
+			const lessons = await listLessons(subject.id);
+			const lessonEntries: StudyLessonEntry[] = [];
+
+			for (const lesson of lessons) {
+				const count = await countCardsInLesson(lesson.id);
+				if (count > 0) lessonEntries.push({ lesson, count });
+			}
+
+			if (lessonEntries.length) subjectEntries.push({ subject, lessons: lessonEntries });
+		}
+
+		if (subjectEntries.length) tree.push({ grade, subjects: subjectEntries });
+	}
+
+	return tree;
+}

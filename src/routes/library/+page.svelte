@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { createGrade, deleteGrade, listGrades, renameGrade } from '$lib/db/queries';
+	import { Subscription } from '$lib/db/subscription.svelte';
 	import type { Grade } from '$lib/db/types';
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import LibraryRow from '$lib/components/LibraryRow.svelte';
@@ -9,12 +10,10 @@
 	import PlusIcon from '~icons/lucide/plus';
 
 	let { data }: { data: { grades: Grade[] } } = $props();
-
-	function initialGrades() {
-		return data.grades;
-	}
-
-	let grades = $state(initialGrades());
+	const grades = new Subscription(
+		() => () => listGrades(),
+		() => data.grades
+	);
 
 	type Dialog =
 		| { kind: 'create' }
@@ -23,28 +22,21 @@
 		| null;
 	let dlg = $state<Dialog>(null);
 
-	async function refresh() {
-		grades = await listGrades();
-	}
-
 	async function onCreate(name: string) {
 		await createGrade(name);
 		dlg = null;
-		await refresh();
 	}
 
 	async function onRename(name: string) {
 		if (dlg?.kind !== 'rename') return;
 		await renameGrade(dlg.target.id, name);
 		dlg = null;
-		await refresh();
 	}
 
 	async function onDelete() {
 		if (dlg?.kind !== 'delete') return;
 		await deleteGrade(dlg.target.id);
 		dlg = null;
-		await refresh();
 	}
 </script>
 
@@ -61,7 +53,7 @@
 </AppHeader>
 
 <ul class="list">
-	{#each grades as g (g.id)}
+	{#each grades.value as g (g.id)}
 		<LibraryRow
 			name={g.name}
 			href={resolve('/library/[gradeId]', { gradeId: g.id })}
